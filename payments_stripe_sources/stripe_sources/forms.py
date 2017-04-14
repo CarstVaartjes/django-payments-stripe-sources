@@ -4,6 +4,8 @@ import stripe
 from django.utils.translation import ugettext as _
 
 from payments import PaymentStatus
+from payments.forms import PaymentForm as BasePaymentForm
+
 
 class StripeFormMixin(object):
 
@@ -49,4 +51,9 @@ class StripeFormMixin(object):
         self.payment.transaction_id = self.source.id
         self.payment.attrs.source = stripe.util.json.dumps(self.source)
         self.payment.change_status(PaymentStatus.PREAUTH)
+
+class ModalPaymentForm(StripeFormMixin, BasePaymentForm):
+
+    def __init__(self, *args, **kwargs):
+        super(StripeFormMixin, self).__init__(hidden_inputs=False, *args, **kwargs)
 

@@ -3,14 +3,14 @@ from decimal import Decimal
 
 import stripe
 
-from .forms import StripeFormMixin
+from .forms import ModalPaymentForm
 from payments import RedirectNeeded, PaymentError, PaymentStatus
 from payments.core import BasicProvider
 
 
 class StripeSourcesProvider(BasicProvider):
 
-    form_class = StripeFormMixin
+    form_class = ModalPaymentForm
 
     def __init__(self, public_key, secret_key, image='', name='', **kwargs):
         stripe.api_key = secret_key
