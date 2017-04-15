@@ -7,26 +7,24 @@ from payments import PaymentStatus
 from payments.forms import PaymentForm as BasePaymentForm
 
 
-class StripeFormMixin(object):
+class PaymentForm(BasePaymentForm):
 
     source = None
 
+    def __init__(self, *args, **kwargs):
+        super(PaymentForm, self).__init__(hidden_inputs=False, *args, **kwargs)
+
     def clean(self):
         data = self.cleaned_data
-
         if not self.errors:
             if not self.payment.transaction_id:
                 stripe.api_key = self.provider.secret_key
                 try:
                     self.source = stripe.Source.create(
-                        capture=False,
                         amount=int(self.payment.total * 100),
                         currency=self.payment.currency,
                         type='ideal',
-                        metadata={self.payment.id},
-                        description='%s %s' % (
-                            self.payment.billing_last_name,
-                            self.payment.billing_first_name),
+                        metadata={'payment_id': self.payment.id},
                         redirect={
                             'return_url': self.payment.get_success_url()
                         },
@@ -52,8 +50,4 @@ class StripeFormMixin(object):
         self.payment.attrs.source = stripe.util.json.dumps(self.source)
         self.payment.change_status(PaymentStatus.PREAUTH)
 
-class ModalPaymentForm(StripeFormMixin, BasePaymentForm):
-
-    def __init__(self, *args, **kwargs):
-        super(StripeFormMixin, self).__init__(hidden_inputs=False, *args, **kwargs)
 

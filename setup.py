@@ -3,7 +3,7 @@ from setuptools import setup
 
 
 PACKAGES = [
-    'payments_stripe_sources',
+    'payments_stripe_sources'
 ]
 
 REQUIREMENTS = [
