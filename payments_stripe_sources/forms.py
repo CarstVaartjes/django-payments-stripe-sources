@@ -24,7 +24,9 @@ class PaymentForm(BasePaymentForm):
                         amount=int(self.payment.total * 100),
                         currency=self.payment.currency,
                         type='ideal',
-                        metadata={'payment_id': self.payment.id},
+                        metadata={
+                            'order_id': self.payment.order.id,
+                            'payment_id': self.payment.id},
                         redirect={
                             'return_url': self.payment.get_success_url()
                         },
