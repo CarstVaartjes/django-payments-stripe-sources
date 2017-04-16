@@ -2,14 +2,18 @@
 
 To configure Ideal and credit cards through Stripe:
 
+
+STRIPE_SECRET_KEY = 'sk_test_example'
+STRIPE_PUBLIC_KEY = 'pk_test_example'
+
 PAYMENT_VARIANTS = {
     'default': ('payments_stripe_sources.StripeSourcesProvider', {
-        'secret_key': 'sk_test_example',
-        'public_key': 'pk_test_example',
+        'secret_key': STRIPE_SECRET_KEY,
+        'public_key': STRIPE_PUBLIC_KEY,
         'name': 'Your Web'}),
     'credit_card': ('payments.stripe.StripeProvider', {
-        'secret_key': 'sk_test_example',
-        'public_key': 'pk_test_example',
+        'secret_key': STRIPE_SECRET_KEY,
+        'public_key': STRIPE_PUBLIC_KEY,
         'name': 'Your Web'}),
 }
 
