@@ -69,7 +69,6 @@ class StripeSourcesProvider(BasicProvider):
             new_order_status = 'cancelled'
         payment.order.change_status(new_order_status)
 
-
     def capture(self, payment, amount=None):
         amount = int((amount or payment.total) * 100)
         charge = stripe.Charge.retrieve(payment.attrs.charge['id'])
