@@ -36,16 +36,39 @@ class StripeSourcesProvider(BasicProvider):
         return form
 
     def charge(self, payment, amount=None):
-        amount = int((amount or payment.total) * 100)
-        charge = stripe.Charge.create(
-            amount=amount,
-            currency=payment.currency,
-            source=payment.transaction_id,
-        )
-        payment.attrs.charge = stripe.util.json.dumps(charge)
-        if charge.status == 'succeeded':
-            payment.change_status(PaymentStatus.CONFIRMED)
-        return Decimal(amount) / 100
+
+        source = stripe.Source.retrieve(payment.transaction_id)
+        if source.status == 'consumed':
+            new_status = PaymentStatus.CONFIRMED
+        elif source.status in ['canceled', 'failed']:
+            new_status = PaymentStatus.REJECTED
+        elif source.status == 'chargeable':
+            amount = int((amount or payment.total) * 100)
+            try:
+                charge = stripe.Charge.create(
+                    amount=amount,
+                    currency=payment.currency,
+                    source=payment.transaction_id,
+                )
+                payment.attrs.charge = stripe.util.json.dumps(charge)
+                if charge.status == 'succeeded':
+                    new_status = PaymentStatus.CONFIRMED
+                else:
+                    new_status = PaymentStatus.REJECTED
+            except stripe.error.InvalidRequestError:
+                new_status = PaymentStatus.REJECTED
+        else:
+            # unknown type of status
+            return
+
+        payment.change_status(new_status)
+        # some hard coding to prevent cross-imports
+        if new_status == PaymentStatus.CONFIRMED:
+            new_order_status = 'fully-paid'
+        else:
+            new_order_status = 'cancelled'
+        payment.order.change_status(new_order_status)
+
 
     def capture(self, payment, amount=None):
         amount = int((amount or payment.total) * 100)
